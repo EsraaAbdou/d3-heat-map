@@ -5,7 +5,7 @@ xhttp.onreadystatechange = function() {
     if(this.readyState==4 && this.status==200){ 
         const dataset = JSON.parse(this.responseText);
         drawChart(dataset);
-      //   console.log(dataset)
+        console.log(dataset)
     }      
 };
 
@@ -24,8 +24,11 @@ function drawChart(dataset) {
    
    // create dynamic scales
    console.log(dataset.monthlyVariance)
+   const minYear = d3.min(dataset.monthlyVariance, (d) => d.year);
+   const maxYear = d3.max(dataset.monthlyVariance, (d) => d.year);
+
    const xScale = d3.scaleLinear()
-                    .domain([d3.min(dataset.monthlyVariance, (d) => d.year), d3.max(dataset.monthlyVariance, (d) => d.year)])
+                    .domain([minYear, maxYear])
                     .range([padding, w - padding]);
 
    const yScale = d3.scaleLinear()
@@ -63,10 +66,27 @@ function drawChart(dataset) {
       .call(yAxis);
    
    svg.append("text")
-      // .attr("transform", "rotate(-90)")
       .attr("y", h - padding/2)
       .attr("x",  w/2)
       .attr("dy", "1em")
       .style("text-anchor", "middle")
       .text("Years");
+
+   // adding title
+   svg.append("text")
+   .attr("x", w/2)
+   .attr("y", 0)
+   .attr("dy", "1em")
+   .attr("id","title")
+   .style("text-anchor", "middle")
+   .text("Monthly Global Land-Surface Temperature");
+
+   // adding description
+   svg.append("text")
+   .attr("x", w/2)
+   .attr("y", "2em")
+   .attr("dy", "1em")
+   .attr("id","description")
+   .style("text-anchor", "middle")
+   .text(`${minYear} - ${maxYear}: base temperature ${dataset.baseTemperature}℃`);
 }
