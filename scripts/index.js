@@ -107,8 +107,7 @@ function drawChart(dataset) {
                     .domain([d3.min(tempBreakpoints), d3.max(tempBreakpoints)])
                     .range([200, 600]);
 
-   const legendAxis = d3.axisBottom(legendScale);
-   legendAxis.tickValues(tempBreakpoints);
+   const legendAxis = d3.axisBottom(legendScale).tickValues(tempBreakpoints).tickFormat(d3.format(".1f"));
                  
    const legend = svg.append("g")
                      .attr("id", "legend")
