@@ -14,6 +14,9 @@ function drawChart(dataset) {
    const w = 1200;
    const h = 600;
    const baseTemp = dataset.baseTemperature;
+   // Legend variables
+   const colors = ["#D73027", "#F46D43", "#FDAE61", "#FEE090", "#FFFFBF", "#E0F3F8", "#ABD9E9", "#74ADD1", "#4575B4", "#FFFFFF"];
+   const tempBreakpoints = [12.8, 11.7, 10.6, 9.5, 8.3, 7.2, 6.1, 5, 3.9, 2.8];
   
    // create SVG
    const svg = d3.select("div")
@@ -23,7 +26,6 @@ function drawChart(dataset) {
                  .style("background-color", "white")
    
    // create dynamic scales
-   console.log(dataset.monthlyVariance)
    const minYear = d3.min(dataset.monthlyVariance, (d) => d.year);
    const maxYear = d3.max(dataset.monthlyVariance, (d) => d.year);
 
@@ -98,17 +100,42 @@ function drawChart(dataset) {
       .attr("width", d => xScale(d.year + 1) - xScale(d.year))
       .attr("height", d => yScale(d.month ) - yScale(d.month + 1))
       .attr("class", "cell")
-      .attr("fill", d => {
-         const temp = baseTemp + d.variance;
-         if(temp > 11.7) return "#D73027";
-         if(temp > 10.6) return "#F46D43";
-         if(temp > 9.5) return "#FDAE61";
-         if(temp > 8.3) return "#FEE090";
-         if(temp > 7.2) return "#FFFFBF";
-         if(temp > 6.1) return "#E0F3F8";
-         if(temp > 5.0) return "#ABD9E9";
-         if(temp > 3.9) return "#74ADD1";
-         if(temp > 2.8) return "#4575B4";
-         else return "#FFFFFF";
-      })
+      .attr("fill", d => fillColor(baseTemp + d.variance, tempBreakpoints, colors));
+
+   // legend
+   const legendScale = d3.scaleLinear()
+                    .domain([d3.min(tempBreakpoints), d3.max(tempBreakpoints)])
+                    .range([200, 600]);
+
+   const legendAxis = d3.axisBottom(legendScale);
+   legendAxis.tickValues(tempBreakpoints);
+                 
+   const legend = svg.append("g")
+                     .attr("id", "legend")
+                     .attr("transform", "translate(0," + (h -  padding/2) + ")")
+                     .call(legendAxis);
+
+   legend.selectAll("rect")
+         .data(tempBreakpoints.slice(1, tempBreakpoints.length))
+         .enter()
+         .append("rect")
+         .attr("x", d => legendScale(d))
+         .attr("y", -30)
+         .attr("width", (d, i) => legendScale(tempBreakpoints[i]) - legendScale(tempBreakpoints[i+1]))
+         .attr("height", 30)
+         .attr("fill", d => fillColor(d, tempBreakpoints, colors))
+}
+
+function fillColor(temp, arr, colors) {
+   console.log(arr)
+   if(temp >= arr[1]) return colors[0];
+   if(temp >= arr[2]) return colors[1];
+   if(temp >= arr[3]) return colors[2];
+   if(temp >= arr[4]) return colors[3];
+   if(temp >= arr[5]) return colors[4];
+   if(temp >= arr[6]) return colors[5];
+   if(temp >= arr[7]) return colors[6];
+   if(temp >= arr[8]) return colors[7];
+   if(temp >= arr[9]) return colors[8];
+   else return colors[9];
 }
