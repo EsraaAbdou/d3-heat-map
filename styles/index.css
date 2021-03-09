@@ -6,3 +6,7 @@
     fill: black;
     font-size: 24px;
 }
+.cell:hover{
+    stroke: #333;
+    stroke-width: 1;
+}

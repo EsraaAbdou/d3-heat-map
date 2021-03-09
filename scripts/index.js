@@ -17,6 +17,9 @@ function drawChart(dataset) {
    // Legend variables
    const colors = ["#D73027", "#F46D43", "#FDAE61", "#FEE090", "#FFFFBF", "#E0F3F8", "#ABD9E9", "#74ADD1", "#4575B4", "#FFFFFF"];
    const tempBreakpoints = [12.8, 11.7, 10.6, 9.5, 8.3, 7.2, 6.1, 5, 3.9, 2.8];
+   // tooltip variables
+   const tooltipWidth = 90;
+   const tooltipHeight = 70;
   
    // create SVG
    const svg = d3.select("div")
@@ -100,9 +103,52 @@ function drawChart(dataset) {
       .attr("width", d => xScale(d.year + 1) - xScale(d.year))
       .attr("height", d => yScale(d.month ) - yScale(d.month + 1))
       .attr("class", "cell")
-      .attr("fill", d => fillColor(baseTemp + d.variance, tempBreakpoints, colors));
+      .attr("fill", d => fillColor(baseTemp + d.variance, tempBreakpoints, colors))
+      .on("mouseover", (event,d) => {
+         // for the tooltip
+         const targetBar = event.target;
+         const xVal = targetBar.getAttribute("x");
+         const yVal = targetBar.getAttribute("y");
+         const tooltipX = parseFloat(xVal) - 45;
+         const tooltipY = parseFloat(yVal) - 75;
+         const textOffset = 10;
 
-   // legend
+         // targetBar.style.border = "1px solid #333";
+        
+         svg.select("#tooltip")
+            .attr("x", tooltipX)
+            .attr("y", tooltipY)
+            .attr("data-year", d.year)
+            .style("visibility", "visible");
+
+         svg.select("#tooltip-text")
+            .attr("x", tooltipX + textOffset)
+            .attr("y", tooltipY + textOffset + 10)
+            .style("visibility", "visible");
+
+         svg.select("#tooltip-date")
+            .text(`${d.year} - ${months[d.month-1]}`);
+         svg.select("#tooltip-temp")
+            .text(`${(d.variance + baseTemp).toFixed(4)}`)
+            .attr("x", tooltipX + textOffset);
+         
+         const tooltipVar = (d.variance > 0) ? "+" + d.variance.toFixed(4) : d.variance.toFixed(4);
+         svg.select("#tooltip-var")
+            .text(`${tooltipVar}`)
+            .attr("x", tooltipX + textOffset);
+      })
+      .on("mouseout", (event) => {
+         // for the tooltip
+         if(!event.relatedTarget || event.relatedTarget.getAttribute("class") !== "cell"){
+            svg.select("#tooltip")
+               .style("visibility", "hidden");
+               
+            svg.select("#tooltip-text")
+               .style("visibility", "hidden");
+         } 
+      });
+
+   // adding legend
    const legendScale = d3.scaleLinear()
                     .domain([d3.min(tempBreakpoints), d3.max(tempBreakpoints)])
                     .range([200, 600]);
@@ -122,11 +168,34 @@ function drawChart(dataset) {
          .attr("y", -30)
          .attr("width", (d, i) => legendScale(tempBreakpoints[i]) - legendScale(tempBreakpoints[i+1]))
          .attr("height", 30)
-         .attr("fill", d => fillColor(d, tempBreakpoints, colors))
+         .attr("fill", d => fillColor(d, tempBreakpoints, colors));
+
+   // adding tooltip
+   svg.append("rect")
+      .attr("width", tooltipWidth)
+      .attr("height", tooltipHeight)
+      .attr("rx", 10)
+      .attr("fill", "grey")
+      .attr("id", "tooltip")
+      .style("visibility", "hidden");   
+
+      const tooltipText = svg.append("text")
+                             .attr("fill", "white")
+                             .attr("id", "tooltip-text")
+                             .style("font-size", "10px")
+                             .style("visibility", "hidden");
+
+      tooltipText.append("tspan")
+                 .attr("id", "tooltip-date");
+      tooltipText.append("tspan")
+                 .attr("id", "tooltip-temp")
+                 .attr("dy", 20);
+      tooltipText.append("tspan")
+                 .attr("id","tooltip-var")
+                 .attr("dy", 20)
 }
 
 function fillColor(temp, arr, colors) {
-   console.log(arr)
    if(temp >= arr[1]) return colors[0];
    if(temp >= arr[2]) return colors[1];
    if(temp >= arr[3]) return colors[2];
